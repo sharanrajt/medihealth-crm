@@ -4,7 +4,9 @@ import type { messageVariants } from "@/components/tambo/message";
 import {
   MessageInput,
   MessageInputError,
-  MessageInputMcpConfigButton,
+  MessageInputFileButton,
+  MessageInputMcpPromptButton,
+  MessageInputMcpResourceButton,
   MessageInputSubmitButton,
   MessageInputTextarea,
   MessageInputToolbar,
@@ -15,15 +17,19 @@ import {
   MessageSuggestionsStatus,
 } from "@/components/tambo/message-suggestions";
 import { ScrollableMessageContainer } from "@/components/tambo/scrollable-message-container";
-import {
-  ThreadContainer,
-  useThreadContainerContext,
-} from "@/components/tambo/thread-container";
+import { ThreadContainer, useThreadContainerContext } from "./thread-container";
 import {
   ThreadContent,
   ThreadContentMessages,
 } from "@/components/tambo/thread-content";
-import { useMergedRef } from "@/lib/thread-hooks";
+import {
+  ThreadHistory,
+  ThreadHistoryHeader,
+  ThreadHistoryList,
+  ThreadHistoryNewButton,
+  ThreadHistorySearch,
+} from "@/components/tambo/thread-history";
+import { useMergeRefs } from "@/lib/thread-hooks";
 import type { Suggestion } from "@tambo-ai/react";
 import type { VariantProps } from "class-variance-authority";
 import * as React from "react";
@@ -31,10 +37,7 @@ import * as React from "react";
 /**
  * Props for the MessageThreadFull component
  */
-export interface MessageThreadFullProps
-  extends Omit<React.HTMLAttributes<HTMLDivElement>, "showgeminitoggle"> {
-  /** Optional context key for the thread */
-  contextKey?: string;
+export interface MessageThreadFullProps extends React.HTMLAttributes<HTMLDivElement> {
   /**
    * Controls the visual styling of messages in the thread.
    * Possible values include: "default", "compact", etc.
@@ -42,8 +45,6 @@ export interface MessageThreadFullProps
    * @example variant="compact"
    */
   variant?: VariantProps<typeof messageVariants>["variant"];
-  /** Show Gemini toggle only when PhotoEditorChat is active. */
-  showgeminitoggle?: boolean;
 }
 
 /**
@@ -52,39 +53,51 @@ export interface MessageThreadFullProps
 export const MessageThreadFull = React.forwardRef<
   HTMLDivElement,
   MessageThreadFullProps
->(({ className, contextKey, variant, showgeminitoggle, ...props }, ref) => {
+>(({ className, variant, ...props }, ref) => {
   const { containerRef, historyPosition } = useThreadContainerContext();
-  const mergedRef = useMergedRef<HTMLDivElement | null>(ref, containerRef);
+  const mergedRef = useMergeRefs<HTMLDivElement | null>(ref, containerRef);
 
-  const threadHistorySidebar = <></>;
+  const threadHistorySidebar = (
+    <ThreadHistory position={historyPosition}>
+      <ThreadHistoryHeader />
+      <ThreadHistoryNewButton />
+      <ThreadHistorySearch />
+      <ThreadHistoryList />
+    </ThreadHistory>
+  );
 
-  // Gemini status polling
-  const [geminiStatus, setGeminiStatus] = React.useState("");
-  React.useEffect(() => {
-    const interval = setInterval(() => {
-      const win =
-        typeof window !== "undefined"
-          ? (window as Window &
-              typeof globalThis & {
-                tamboInteractable?: Record<string, unknown>;
-              })
-          : undefined;
-      const status =
-        typeof win?.tamboInteractable?.PhotoEditorChat_lastGeminiStatus ===
-        "string"
-          ? win.tamboInteractable.PhotoEditorChat_lastGeminiStatus
-          : "";
-      setGeminiStatus(status);
-    }, 500);
-    return () => clearInterval(interval);
-  }, []);
+  const defaultSuggestions: Suggestion[] = [
+    {
+      id: "suggestion-1",
+      title: "Get started",
+      detailedSuggestion: "What can you help me with?",
+      messageId: "welcome-query",
+    },
+    {
+      id: "suggestion-2",
+      title: "Learn more",
+      detailedSuggestion: "Tell me about your capabilities.",
+      messageId: "capabilities-query",
+    },
+    {
+      id: "suggestion-3",
+      title: "Examples",
+      detailedSuggestion: "Show me some example queries I can try.",
+      messageId: "examples-query",
+    },
+  ];
 
   return (
-    <>
+    <div className="flex h-full w-full">
       {/* Thread History Sidebar - rendered first if history is on the left */}
       {historyPosition === "left" && threadHistorySidebar}
 
-      <ThreadContainer ref={mergedRef} className={className}>
+      <ThreadContainer
+        ref={mergedRef}
+        disableSidebarSpacing
+        className={className}
+        {...props}
+      >
         <ScrollableMessageContainer className="p-4">
           <ThreadContent variant={variant}>
             <ThreadContentMessages />
@@ -96,52 +109,16 @@ export const MessageThreadFull = React.forwardRef<
           <MessageSuggestionsStatus />
         </MessageSuggestions>
 
-        {/* Gemini status indicator above message input */}
-        {geminiStatus && (
-          <div className="flex items-center gap-2 px-2 py-1 ml-5 text-xs rounded-md bg-transparent text-muted-foreground mt-2">
-            {geminiStatus === "Gemini edit complete." ? (
-              <span className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-gray-200">
-                <svg
-                  className="h-3 w-3 text-gray-500"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <circle cx="12" cy="12" r="10" />
-                  <polyline points="16 8 11 13 8 10" />
-                </svg>
-              </span>
-            ) : (
-              <span className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-gray-200">
-                <svg
-                  className="h-3 w-3 animate-spin text-gray-500"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <circle cx="12" cy="12" r="10" />
-                  <path d="M12 6v6l4 2" />
-                </svg>
-              </span>
-            )}
-            <span>{geminiStatus}</span>
-          </div>
-        )}
         {/* Message input */}
-        <div className="p-4">
-          <MessageInput
-            contextKey={contextKey}
-            {...(showgeminitoggle ? { showgeminitoggle: true } : {})}
-          >
-            <MessageInputTextarea />
+        <div className="px-4 pb-4">
+          <MessageInput>
+            <MessageInputTextarea placeholder="Type your message or paste images..." />
             <MessageInputToolbar>
-              <MessageInputMcpConfigButton />
+              <MessageInputFileButton />
+              <MessageInputMcpPromptButton />
+              <MessageInputMcpResourceButton />
+              {/* Uncomment this to enable client-side MCP config modal button */}
+              {/* <MessageInputMcpConfigButton /> */}
               <MessageInputSubmitButton />
             </MessageInputToolbar>
             <MessageInputError />
@@ -149,14 +126,14 @@ export const MessageThreadFull = React.forwardRef<
         </div>
 
         {/* Message suggestions */}
-        {/* <MessageSuggestions initialSuggestions={defaultSuggestions} maxSuggestions={5}>
+        <MessageSuggestions initialSuggestions={defaultSuggestions}>
           <MessageSuggestionsList />
-        </MessageSuggestions> */}
+        </MessageSuggestions>
       </ThreadContainer>
 
       {/* Thread History Sidebar - rendered last if history is on the right */}
       {historyPosition === "right" && threadHistorySidebar}
-    </>
+    </div>
   );
 });
 MessageThreadFull.displayName = "MessageThreadFull";

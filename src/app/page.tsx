@@ -54,7 +54,6 @@ export default function Page() {
                 <MessageThreadFull
                   key={messageThreadKey}
                   className="w-full h-full"
-                  contextKey="tambo-template"
                 />
               </div>
             </div>
