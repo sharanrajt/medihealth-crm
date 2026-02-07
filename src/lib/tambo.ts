@@ -7,6 +7,7 @@
 import { TamboComponent, TamboTool } from "@tambo-ai/react";
 
 import { calendarControlTool } from "@/services/calendar-control";
+import { addPatientTool, addLabResultTool, addStaffMemberTool, addInventoryItemTool } from "@/services/crm-tools";
 import { PatientSummaryCard } from "@/components/tambo/patient-summary-card";
 import { VitalsDisplay } from "@/components/tambo/vitals-display";
 import { PrescriptionCard } from "@/components/tambo/prescription-card";
@@ -76,6 +77,115 @@ export const tools: TamboTool[] = [
       properties: {
         success: { type: "boolean", description: "Whether the operation succeeded" },
         error: { type: "string", description: "Error message if the operation failed" },
+      },
+      required: ["success"],
+    },
+  },
+  {
+    name: "addPatient",
+    description:
+      "Add a new patient record to the CRM. Use this when the user asks to add, create, or register a new patient in the system.",
+    tool: addPatientTool,
+    inputSchema: {
+      type: "object",
+      properties: {
+        name: { type: "string", description: "Patient full name" },
+        age: { type: "number", description: "Patient age in years" },
+        gender: { type: "string", enum: ["Male", "Female", "Other"], description: "Patient gender" },
+        diagnosis: { type: "string", description: "Primary diagnosis" },
+        department: { type: "string", description: "Hospital department" },
+        status: { type: "string", enum: ["Admitted", "Outpatient", "Discharged", "Critical"], description: "Patient status" },
+        admissionDate: { type: "string", description: "Admission date in YYYY-MM-DD format" },
+      },
+      required: ["name", "age", "gender", "diagnosis", "department", "status", "admissionDate"],
+    },
+    outputSchema: {
+      type: "object",
+      properties: {
+        success: { type: "boolean" },
+        patient: { type: "object" },
+        error: { type: "string" },
+      },
+      required: ["success"],
+    },
+  },
+  {
+    name: "addLabResult",
+    description:
+      "Add a new lab result/test order to the CRM. Use this when the user asks to add, create, or order a new lab test.",
+    tool: addLabResultTool,
+    inputSchema: {
+      type: "object",
+      properties: {
+        patientName: { type: "string", description: "Patient name" },
+        testType: { type: "string", description: "Type of lab test (e.g. Complete Blood Count)" },
+        date: { type: "string", description: "Test date in YYYY-MM-DD format" },
+        status: { type: "string", enum: ["Completed", "Pending", "Processing"], description: "Test status" },
+        doctor: { type: "string", description: "Ordering doctor name" },
+        priority: { type: "string", enum: ["Routine", "High", "Critical"], description: "Test priority" },
+        resultSummary: { type: "string", description: "Result summary (use '-' if pending)" },
+      },
+      required: ["patientName", "testType", "date", "status", "doctor", "priority", "resultSummary"],
+    },
+    outputSchema: {
+      type: "object",
+      properties: {
+        success: { type: "boolean" },
+        labResult: { type: "object" },
+        error: { type: "string" },
+      },
+      required: ["success"],
+    },
+  },
+  {
+    name: "addStaffMember",
+    description:
+      "Add a new staff member to the CRM. Use this when the user asks to add, hire, or register a new doctor, nurse, or staff member.",
+    tool: addStaffMemberTool,
+    inputSchema: {
+      type: "object",
+      properties: {
+        name: { type: "string", description: "Staff member full name" },
+        role: { type: "string", enum: ["Doctor", "Nurse", "Admin", "Pharmacist", "Technician", "Specialist"], description: "Staff role" },
+        department: { type: "string", description: "Department name" },
+        email: { type: "string", description: "Email address" },
+        phone: { type: "string", description: "Phone number" },
+      },
+      required: ["name", "role", "department", "email", "phone"],
+    },
+    outputSchema: {
+      type: "object",
+      properties: {
+        success: { type: "boolean" },
+        staffMember: { type: "object" },
+        error: { type: "string" },
+      },
+      required: ["success"],
+    },
+  },
+  {
+    name: "addInventoryItem",
+    description:
+      "Add a new inventory item/supply to the CRM. Use this when the user asks to add new medical supplies, equipment, or pharmaceuticals to inventory.",
+    tool: addInventoryItemTool,
+    inputSchema: {
+      type: "object",
+      properties: {
+        name: { type: "string", description: "Item name" },
+        category: { type: "string", enum: ["Medical Device", "Pharmaceuticals", "Surgical", "General"], description: "Item category" },
+        quantity: { type: "number", description: "Quantity in stock" },
+        location: { type: "string", description: "Storage location" },
+        status: { type: "string", enum: ["In Stock", "Low Stock", "Out of Stock"], description: "Stock status" },
+        expiryDate: { type: "string", description: "Optional expiry date in YYYY-MM-DD format" },
+      },
+      required: ["name", "category", "quantity", "location", "status"],
+    },
+    outputSchema: {
+      type: "object",
+      properties: {
+        success: { type: "boolean" },
+        inventoryItem: { type: "object" },
+        error: { type: "string" },
       },
       required: ["success"],
     },

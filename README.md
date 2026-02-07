@@ -23,6 +23,7 @@ Hospital management systems are often fragmented, unintuitive, and lack intellig
 **MediHealthCRM** is a unified healthcare management platform that combines six essential hospital modules with an always-available AI assistant. Powered by Tambo AI's generative UI engine, the assistant doesn't just answer questions — it dynamically renders interactive components, executes tools, and provides context-aware help directly within the CRM workflow.
 
 The AI chat panel lives alongside the CRM interface, enabling staff to:
+- **Add data via chat** — e.g., *"Add patient John Doe, age 45, with diabetes"* instantly creates a record visible in the Patient Records page
 - Ask natural language questions about patients, inventory, or schedules
 - Trigger actions like looking up medical terms, searching images, or managing calendar events
 - Receive AI-generated UI components rendered in real-time within the chat
@@ -80,7 +81,12 @@ The AI chat panel lives alongside the CRM interface, enabling staff to:
 - **Always-On Chat Panel**: 400px-wide AI chat interface docked to the right side of the CRM
 - **Generative UI Rendering**: AI dynamically generates and renders interactive UI components within the chat
 - **Real-Time Streaming**: Live content streaming as the AI generates responses
+- **Shared CRM Data Store**: Chat-driven actions (e.g., adding a patient) instantly update the CRM pages via a centralized React Context
 - **Integrated Tools**:
+  - 🏥 **Add Patient** — Add new patient records via natural language (e.g., *"Add patient John Doe, age 45, diagnosed with diabetes"*)
+  - 🧪 **Add Lab Result** — Create lab test entries with patient info, test type, priority, and results
+  - 👨‍⚕️ **Add Staff Member** — Register new healthcare personnel with role, department, and contact details
+  - 📦 **Add Inventory Item** — Add medical supplies with category, quantity, location, and expiry tracking
   - 📖 **Dictionary Search** — Look up medical terms and definitions with phonetics and examples
   - 📅 **Calendar Control** — Add events, highlight dates, and manage schedules via natural language
   - 🖼️ **Image Search** — Search and display images from Unsplash directly in chat
@@ -170,32 +176,46 @@ The interface features a **floating dock** at the bottom of the screen for switc
 The AI chat panel is always available on the right side of the screen:
 
 1. **Type a message** in the chat input at the bottom
-2. **Ask questions** — e.g., *"What does hypertension mean?"* → AI renders a Dictionary component
-3. **Request actions** — e.g., *"Add a meeting tomorrow at 3pm"* → AI controls the Calendar
-4. **Search for images** — e.g., *"Show me images of hospital equipment"* → AI renders an Image Gallery
-5. **Watch generative UI** — The AI dynamically creates appropriate components based on your request
+2. **Add CRM data** — e.g., *"Add patient John Doe, age 45, diagnosed with diabetes in Cardiology"* → Patient appears instantly in the Records page
+3. **Add lab results** — e.g., *"Add a blood test for patient Sarah, ordered by Dr. Smith, priority urgent"* → Result appears in Lab Results page
+4. **Add staff** — e.g., *"Add Dr. Emily Chen as a Cardiologist in the Cardiology department"* → Staff member appears in Staff Directory
+5. **Add inventory** — e.g., *"Add 500 units of Amoxicillin in Pharmacy, expires 2026-12-01"* → Item appears in Inventory page
+6. **Ask questions** — e.g., *"What does hypertension mean?"* → AI renders a Dictionary component
+7. **Manage calendar** — e.g., *"Add a meeting tomorrow at 3pm"* → AI controls the Calendar
+8. **Search for images** — e.g., *"Show me images of hospital equipment"* → AI renders an Image Gallery
+9. **Watch generative UI** — The AI dynamically creates appropriate components based on your request
 
 ### Tambo AI Integration Architecture
 
 ```
-┌─────────────────────────────────────────────────────┐
-│                    MediHealthCRM                     │
-│                                                     │
-│  ┌──────────────────────┐  ┌──────────────────────┐ │
-│  │   CRM Modules        │  │   AI Chat Panel      │ │
-│  │                      │  │                      │ │
-│  │  ┌────────────────┐  │  │  TamboProvider       │ │
-│  │  │ Dashboard      │  │  │    ├─ Tools          │ │
-│  │  │ Records        │  │  │    │  ├─ Dictionary  │ │
-│  │  │ Staff          │  │  │    │  ├─ Calendar    │ │
-│  │  │ Inventory      │  │  │    │  └─ ImageSearch │ │
-│  │  │ Lab Results    │  │  │    ├─ Components     │ │
-│  │  │ Ambulance      │  │  │    │  ├─ Dictionary  │ │
-│  │  └────────────────┘  │  │    │  └─ ImageGallery│ │
-│  │                      │  │    └─ MCP Servers    │ │
-│  │  FloatingDock Nav    │  │       └─ External    │ │
-│  └──────────────────────┘  └──────────────────────┘ │
-└─────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│                       MediHealthCRM                          │
+│                                                              │
+│  ┌─────────────────────────────────────────────────────────┐ │
+│  │              CrmDataProvider (React Context)            │ │
+│  │   Shared state: patients, labResults, staff, inventory  │ │
+│  ├──────────────────────┬──────────────────────────────────┤ │
+│  │   CRM Modules        │   AI Chat Panel                  │ │
+│  │                      │                                  │ │
+│  │  ┌────────────────┐  │  TamboProvider                   │ │
+│  │  │ Dashboard      │  │    ├─ CRM Tools                  │ │
+│  │  │ Records ◄──────┼──┼────┤  ├─ addPatient              │ │
+│  │  │ Staff   ◄──────┼──┼────┤  ├─ addLabResult            │ │
+│  │  │ Inventory◄─────┼──┼────┤  ├─ addStaffMember          │ │
+│  │  │ Lab Results◄───┼──┼────┤  └─ addInventoryItem        │ │
+│  │  │ Ambulance      │  │    ├─ Utility Tools              │ │
+│  │  └────────────────┘  │    │  ├─ Dictionary              │ │
+│  │                      │    │  ├─ Calendar                 │ │
+│  │  FloatingDock Nav    │    │  └─ ImageSearch              │ │
+│  │                      │    ├─ Components                  │ │
+│  │                      │    │  ├─ Dictionary               │ │
+│  │                      │    │  └─ ImageGallery             │ │
+│  │                      │    └─ MCP Servers                 │ │
+│  │                      │       └─ External                 │ │
+│  └──────────────────────┴──────────────────────────────────┘ │
+└──────────────────────────────────────────────────────────────┘
+
+Data Flow: Chat Tool → Window Global → CrmDataProvider → CRM Page (re-render)
 ```
 
 ---
@@ -247,10 +267,11 @@ MediHealthCRM/
 │   │           └── Ambulance.tsx         # Emergency dispatch & GPS
 │   ├── lib/
 │   │   ├── tambo.ts              # Tambo config: tools & component registry
-│   │   ├── types.ts              # TypeScript type definitions
+│   │   ├── crm-data-store.tsx    # ★ Centralized CRM state (React Context provider)
 │   │   ├── thread-hooks.ts       # Custom thread management hooks
 │   │   └── utils.ts              # Utility functions
 │   └── services/
+│       ├── crm-tools.ts          # ★ Tambo tool definitions for CRM CRUD operations
 │       ├── calendar-control.ts   # Calendar tool implementation
 │       ├── dictionary-search.ts  # Dictionary API service
 │       └── image-search.ts       # Unsplash image search service
@@ -283,6 +304,12 @@ MediHealthCRM/
 ```typescript
 // Registered AI Tools
 export const tools: TamboTool[] = [
+  // CRM Data Tools (chat → CRM page sync)
+  addPatientTool,         // Add patient records via chat
+  addLabResultTool,       // Add lab test results via chat
+  addStaffMemberTool,     // Add staff members via chat
+  addInventoryItemTool,   // Add inventory items via chat
+  // Utility Tools
   dictionarySearchTool,   // Look up word definitions
   calendarControlTool,    // Manage calendar events
   imageSearch,            // Search Unsplash images
@@ -294,6 +321,26 @@ export const components: TamboComponent[] = [
   { name: "ImageGallery", component: ImageGallery, ... },
 ];
 ```
+
+### CRM Data Store (`src/lib/crm-data-store.tsx`)
+
+The centralized data store uses React Context to share state between the AI chat and CRM pages:
+
+```typescript
+// Wrap your app with CrmDataProvider
+<CrmDataProvider>
+  <TamboProvider ...>
+    <TamboMcpProvider ...>
+      {/* CRM pages + Chat panel */}
+    </TamboMcpProvider>
+  </TamboProvider>
+</CrmDataProvider>
+
+// Access shared data in any CRM component
+const { patients, labResults, staff, inventory, addPatient, ... } = useCrmData();
+```
+
+**How it works:** Tambo AI tools call window global functions (e.g., `window.handleAddPatient`) which are bound to the `CrmDataProvider`'s state setters. This bridges the Tambo tool execution context with React's state management, ensuring data added via chat instantly appears in the corresponding CRM page.
 
 ### MCP Server Configuration
 
@@ -315,6 +362,7 @@ Extend the AI's capabilities by connecting external MCP servers:
 |-------|----------|
 | **API key not working** | Verify `.env.local` contains `NEXT_PUBLIC_TAMBO_API_KEY` and the key is valid |
 | **Chat panel not loading** | Check browser console for errors; ensure internet connectivity |
+| **Chat data not appearing in CRM pages** | Ensure `CrmDataProvider` wraps both the chat panel and CRM modules in `page.tsx`. Check browser console for window global function errors. |
 | **Build failures** | Run `rm -rf .next node_modules && npm install` then `npm run build` |
 | **Node version errors** | Ensure Node.js 18+ with `node --version` |
 
@@ -335,6 +383,7 @@ Contributions are welcome! To get started:
 - Follow existing code patterns and component structure
 - Add Framer Motion animations for new UI elements
 - Register new AI-renderable components in `src/lib/tambo.ts`
+- For new CRM entities, add types and state to `src/lib/crm-data-store.tsx` and create corresponding Tambo tools in `src/services/crm-tools.ts`
 
 ---
 

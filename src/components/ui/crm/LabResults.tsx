@@ -13,67 +13,16 @@ import {
     IconX
 } from "@tabler/icons-react";
 import { motion, AnimatePresence } from "framer-motion";
-
-const mockLabResults = [
-    {
-        id: "LAB-2024-001",
-        patientName: "John Doe",
-        testType: "Complete Blood Count (CBC)",
-        date: "2024-03-15",
-        status: "Completed",
-        doctor: "Dr. Gregory House",
-        priority: "Routine",
-        resultSummary: "Normal"
-    },
-    {
-        id: "LAB-2024-002",
-        patientName: "Jane Smith",
-        testType: "Lipid Panel",
-        date: "2024-03-14",
-        status: "Pending",
-        doctor: "Dr. Lisa Cuddy",
-        priority: "High",
-        resultSummary: "-"
-    },
-    {
-        id: "LAB-2024-003",
-        patientName: "Robert Chase",
-        testType: "MRI - Brain",
-        date: "2024-03-14",
-        status: "Completed",
-        doctor: "Dr. James Wilson",
-        priority: "Critical",
-        resultSummary: "Abnormalities Detected"
-    },
-    {
-        id: "LAB-2024-004",
-        patientName: "Allison Cameron",
-        testType: "Urinalysis",
-        date: "2024-03-13",
-        status: "Processing",
-        doctor: "Dr. Eric Foreman",
-        priority: "Routine",
-        resultSummary: "-"
-    },
-    {
-        id: "LAB-2024-005",
-        patientName: "Chris Taub",
-        testType: "Liver Function Test",
-        date: "2024-03-12",
-        status: "Completed",
-        doctor: "Dr. Remy Hadley",
-        priority: "Routine",
-        resultSummary: "Elevated Enzymes"
-    }
-];
+import { useCrmData, type LabResult } from "@/lib/crm-data-store";
 
 const LabResults = () => {
+    const { labResults } = useCrmData();
     const [searchTerm, setSearchTerm] = useState("");
     const [showNewTestModal, setShowNewTestModal] = useState(false);
-    const [selectedResult, setSelectedResult] = useState<typeof mockLabResults[0] | null>(null);
+    const [selectedResult, setSelectedResult] = useState<LabResult | null>(null);
     const [filterStatus, setFilterStatus] = useState<string>("All");
 
-    const filteredResults = mockLabResults.filter(result =>
+    const filteredResults = labResults.filter(result =>
         (filterStatus === "All" || result.status === filterStatus) &&
         (result.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         result.testType.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -86,11 +35,11 @@ const LabResults = () => {
         setShowNewTestModal(false);
     };
 
-    const handleDownload = (result: typeof mockLabResults[0]) => {
+    const handleDownload = (result: LabResult) => {
         alert(`Downloading report for ${result.id}...`);
     };
 
-    const handleViewDetails = (result: typeof mockLabResults[0]) => {
+    const handleViewDetails = (result: LabResult) => {
         setSelectedResult(result);
     };
 

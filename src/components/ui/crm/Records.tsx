@@ -2,28 +2,10 @@
 import React, { useState } from "react";
 import { IconSearch, IconFilter, IconPlus, IconTrash, IconEdit } from "@tabler/icons-react";
 import { motion, AnimatePresence } from "framer-motion";
-
-interface PatientRecord {
-    id: string;
-    name: string;
-    age: number;
-    gender: "Male" | "Female" | "Other";
-    diagnosis: string;
-    department: string;
-    status: "Admitted" | "Outpatient" | "Discharged" | "Critical";
-    admissionDate: string;
-}
-
-const initialRecords: PatientRecord[] = [
-    { id: "P-1024", name: "John Doe", age: 45, gender: "Male", diagnosis: "Hypertension", department: "Cardiology", status: "Admitted", admissionDate: "2024-03-10" },
-    { id: "P-1025", name: "Jane Smith", age: 32, gender: "Female", diagnosis: "Migraine", department: "Neurology", status: "Outpatient", admissionDate: "2024-03-12" },
-    { id: "P-1026", name: "Robert Chase", age: 28, gender: "Male", diagnosis: "Fractured Tibia", department: "Orthopedics", status: "Admitted", admissionDate: "2024-03-14" },
-    { id: "P-1027", name: "Emily Rose", age: 67, gender: "Female", diagnosis: "Pneumonia", department: "Pulmonology", status: "Critical", admissionDate: "2024-03-15" },
-    { id: "P-1028", name: "Michael Scott", age: 50, gender: "Male", diagnosis: "Gastritis", department: "Gastroenterology", status: "Discharged", admissionDate: "2024-03-01" },
-];
+import { useCrmData, type PatientRecord } from "@/lib/crm-data-store";
 
 const Records = () => {
-    const [records, setRecords] = useState<PatientRecord[]>(initialRecords);
+    const { patients: records, addPatient, updatePatient, deletePatient } = useCrmData();
     const [searchTerm, setSearchTerm] = useState("");
     const [filterStatus, setFilterStatus] = useState<"All" | "Admitted" | "Outpatient" | "Critical" | "Discharged">("All");
     const [showAddModal, setShowAddModal] = useState(false);
@@ -52,8 +34,7 @@ const Records = () => {
     const handleAddPatient = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
-        const newRecord: PatientRecord = {
-            id: `P-${1000 + records.length + 1}`,
+        addPatient({
             name: formData.get("name") as string,
             age: parseInt(formData.get("age") as string),
             gender: formData.get("gender") as "Male" | "Female" | "Other",
@@ -61,8 +42,7 @@ const Records = () => {
             department: formData.get("department") as string,
             status: formData.get("status") as "Admitted" | "Outpatient" | "Critical" | "Discharged",
             admissionDate: formData.get("admissionDate") as string,
-        };
-        setRecords([...records, newRecord]);
+        });
         setShowAddModal(false);
     };
 
@@ -70,8 +50,7 @@ const Records = () => {
         e.preventDefault();
         if (!selectedRecord) return;
         const formData = new FormData(e.currentTarget);
-        const updatedRecord: PatientRecord = {
-            ...selectedRecord,
+        updatePatient(selectedRecord.id, {
             name: formData.get("name") as string,
             age: parseInt(formData.get("age") as string),
             gender: formData.get("gender") as "Male" | "Female" | "Other",
@@ -79,15 +58,14 @@ const Records = () => {
             department: formData.get("department") as string,
             status: formData.get("status") as "Admitted" | "Outpatient" | "Critical" | "Discharged",
             admissionDate: formData.get("admissionDate") as string,
-        };
-        setRecords(records.map(r => r.id === selectedRecord.id ? updatedRecord : r));
+        });
         setShowEditModal(false);
         setSelectedRecord(null);
     };
 
     const handleDeletePatient = (id: string) => {
         if (confirm("Are you sure you want to delete this patient record?")) {
-            setRecords(records.filter(r => r.id !== id));
+            deletePatient(id);
         }
     };
 

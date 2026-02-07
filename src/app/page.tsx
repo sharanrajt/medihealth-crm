@@ -7,6 +7,7 @@ import { TamboProvider } from "@tambo-ai/react";
 import { TamboMcpProvider } from "@tambo-ai/react/mcp";
 import React, { useState } from "react";
 import { ComputerDisplay } from "@/components/ui/ComputerDisplay";
+import { CrmDataProvider } from "@/lib/crm-data-store";
 
 export default function Page() {
   const mcpServers = useMcpServers();
@@ -27,6 +28,7 @@ export default function Page() {
         mcpServers={mcpServers}
       >
         <TamboMcpProvider>
+          <CrmDataProvider>
           {/* Header bar */}
           <div className="h-14 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-6 bg-white dark:bg-gray-800 shadow-sm z-20">
             <div className="flex items-center space-x-3">
@@ -58,6 +60,7 @@ export default function Page() {
               </div>
             </div>
           </div>
+          </CrmDataProvider>
         </TamboMcpProvider>
       </TamboProvider>
     </div>

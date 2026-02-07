@@ -2,32 +2,15 @@
 import React, { useState } from "react";
 import { IconSearch, IconFilter, IconPlus, IconTrash, IconEdit, IconMail, IconPhone } from "@tabler/icons-react";
 import { motion, AnimatePresence } from "framer-motion";
-
-interface Staff {
-    id: string;
-    name: string;
-    role: "Doctor" | "Nurse" | "Admin" | "Pharmacist" | "Technician" | "Specialist";
-    department: string;
-    email: string;
-    phone: string;
-}
-
-const initialStaff: Staff[] = [
-    { id: "S001", name: "Dr. Gregory House", role: "Doctor", department: "Diagnostics", email: "g.house@hospital.com", phone: "555-0101" },
-    { id: "S002", name: "Dr. Lisa Cuddy", role: "Admin", department: "Administration", email: "l.cuddy@hospital.com", phone: "555-0102" },
-    { id: "S003", name: "Nurse Ratched", role: "Nurse", department: "Psychiatry", email: "m.ratched@hospital.com", phone: "555-0103" },
-    { id: "S004", name: "Dr. James Wilson", role: "Specialist", department: "Oncology", email: "j.wilson@hospital.com", phone: "555-0104" },
-    { id: "S005", name: "Dr. Strange", role: "Doctor", department: "Surgery", email: "s.strange@hospital.com", phone: "555-0105" },
-    { id: "S006", name: "Nurse Joy", role: "Nurse", department: "Emergency", email: "joy@hospital.com", phone: "555-0106" },
-];
+import { useCrmData, type StaffMember } from "@/lib/crm-data-store";
 
 const Staff = () => {
-    const [staffList, setStaffList] = useState<Staff[]>(initialStaff);
+    const { staff: staffList, addStaffMember, updateStaffMember, deleteStaffMember } = useCrmData();
     const [searchTerm, setSearchTerm] = useState("");
     const [showAddModal, setShowAddModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
     const [showDetailsModal, setShowDetailsModal] = useState(false);
-    const [selectedStaff, setSelectedStaff] = useState<Staff | null>(null);
+    const [selectedStaff, setSelectedStaff] = useState<StaffMember | null>(null);
     const [filterRole, setFilterRole] = useState<"All" | "Doctor" | "Nurse" | "Admin" | "Pharmacist" | "Technician" | "Specialist">("All");
 
     const filteredStaff = staffList.filter(staff =>
@@ -40,15 +23,13 @@ const Staff = () => {
     const handleAddStaff = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
-        const newStaff: Staff = {
-            id: `S${String(staffList.length + 1).padStart(3, '0')}`,
+        addStaffMember({
             name: formData.get("name") as string,
             role: formData.get("role") as "Doctor" | "Nurse" | "Admin" | "Pharmacist" | "Technician" | "Specialist",
             department: formData.get("department") as string,
             email: formData.get("email") as string,
             phone: formData.get("phone") as string,
-        };
-        setStaffList([...staffList, newStaff]);
+        });
         setShowAddModal(false);
     };
 
@@ -56,32 +37,30 @@ const Staff = () => {
         e.preventDefault();
         if (!selectedStaff) return;
         const formData = new FormData(e.currentTarget);
-        const updatedStaff: Staff = {
-            ...selectedStaff,
+        updateStaffMember(selectedStaff.id, {
             name: formData.get("name") as string,
             role: formData.get("role") as "Doctor" | "Nurse" | "Admin" | "Pharmacist" | "Technician" | "Specialist",
             department: formData.get("department") as string,
             email: formData.get("email") as string,
             phone: formData.get("phone") as string,
-        };
-        setStaffList(staffList.map(s => s.id === selectedStaff.id ? updatedStaff : s));
+        });
         setShowEditModal(false);
         setSelectedStaff(null);
     };
 
     const handleDeleteStaff = (id: string) => {
         if (confirm("Are you sure you want to remove this staff member?")) {
-            setStaffList(staffList.filter(s => s.id !== id));
+            deleteStaffMember(id);
         }
     };
 
-    const handleViewDetails = (staff: Staff) => {
-        setSelectedStaff(staff);
+    const handleViewDetails = (member: StaffMember) => {
+        setSelectedStaff(member);
         setShowDetailsModal(true);
     };
 
-    const handleEditClick = (staff: Staff) => {
-        setSelectedStaff(staff);
+    const handleEditClick = (member: StaffMember) => {
+        setSelectedStaff(member);
         setShowEditModal(true);
     };
 

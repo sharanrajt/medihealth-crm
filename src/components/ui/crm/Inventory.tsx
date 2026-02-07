@@ -2,28 +2,10 @@
 import React, { useState } from "react";
 import { IconSearch, IconFilter, IconPlus, IconTrash, IconEdit, IconPackage, IconAlertCircle, IconMedicineSyrup, IconX } from "@tabler/icons-react";
 import { motion, AnimatePresence } from "framer-motion";
-
-interface InventoryItem {
-    id: string;
-    name: string;
-    category: "Medical Device" | "Pharmaceuticals" | "Surgical" | "General";
-    quantity: number;
-    location: string;
-    status: "In Stock" | "Low Stock" | "Out of Stock";
-    expiryDate?: string;
-}
-
-const initialItems: InventoryItem[] = [
-    { id: "INV-001", name: "MRI Machine (Philips)", category: "Medical Device", quantity: 2, location: "Radiology", status: "In Stock" },
-    { id: "INV-002", name: "Amoxicillin 500mg", category: "Pharmaceuticals", quantity: 500, location: "Pharmacy A", status: "In Stock", expiryDate: "2025-12-01" },
-    { id: "INV-003", name: "Surgical Scalpel #10", category: "Surgical", quantity: 50, location: "OR Supply", status: "Low Stock" },
-    { id: "INV-004", name: "Paracetamol", category: "Pharmaceuticals", quantity: 1000, location: "Pharmacy B", status: "In Stock", expiryDate: "2026-01-15" },
-    { id: "INV-005", name: "Defibrillator", category: "Medical Device", quantity: 10, location: "Emergency", status: "In Stock" },
-    { id: "INV-006", name: "Sterile Gloves (Box)", category: "General", quantity: 0, location: "Storage 2", status: "Out of Stock" },
-];
+import { useCrmData, type InventoryItem } from "@/lib/crm-data-store";
 
 const Inventory = () => {
-    const [items, setItems] = useState<InventoryItem[]>(initialItems);
+    const { inventory: items, addInventoryItem, updateInventoryItem, deleteInventoryItem } = useCrmData();
     const [searchTerm, setSearchTerm] = useState("");
     const [showAddModal, setShowAddModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
@@ -40,16 +22,15 @@ const Inventory = () => {
     const handleAddItem = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
-        const newItem: InventoryItem = {
-            id: `INV-${String(items.length + 1).padStart(3, '0')}`,
+        const qty = Number(formData.get('quantity'));
+        addInventoryItem({
             name: formData.get('name') as string,
             category: formData.get('category') as InventoryItem['category'],
-            quantity: Number(formData.get('quantity')),
+            quantity: qty,
             location: formData.get('location') as string,
-            status: Number(formData.get('quantity')) === 0 ? "Out of Stock" : Number(formData.get('quantity')) < 50 ? "Low Stock" : "In Stock",
+            status: qty === 0 ? "Out of Stock" : qty < 50 ? "Low Stock" : "In Stock",
             expiryDate: formData.get('expiryDate') as string || undefined
-        };
-        setItems([...items, newItem]);
+        });
         setShowAddModal(false);
         alert("Item added successfully!");
     };
@@ -58,16 +39,15 @@ const Inventory = () => {
         e.preventDefault();
         if (!selectedItem) return;
         const formData = new FormData(e.currentTarget);
-        const updatedItem: InventoryItem = {
-            ...selectedItem,
+        const qty = Number(formData.get('quantity'));
+        updateInventoryItem(selectedItem.id, {
             name: formData.get('name') as string,
             category: formData.get('category') as InventoryItem['category'],
-            quantity: Number(formData.get('quantity')),
+            quantity: qty,
             location: formData.get('location') as string,
-            status: Number(formData.get('quantity')) === 0 ? "Out of Stock" : Number(formData.get('quantity')) < 50 ? "Low Stock" : "In Stock",
+            status: qty === 0 ? "Out of Stock" : qty < 50 ? "Low Stock" : "In Stock",
             expiryDate: formData.get('expiryDate') as string || undefined
-        };
-        setItems(items.map(item => item.id === selectedItem.id ? updatedItem : item));
+        });
         setShowEditModal(false);
         setSelectedItem(null);
         alert("Item updated successfully!");
@@ -75,7 +55,7 @@ const Inventory = () => {
 
     const handleDeleteItem = (id: string) => {
         if (confirm("Are you sure you want to delete this item?")) {
-            setItems(items.filter(item => item.id !== id));
+            deleteInventoryItem(id);
             alert("Item deleted successfully!");
         }
     };
