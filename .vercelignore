@@ -1,0 +1,51 @@
+# Vercel ignore file for MediHealthCRM
+# This file specifies which files and directories should be ignored during deployment
+
+# Development files
+.env
+.env.development
+.env.test
+.env.staging
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Node.js files
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build artifacts (local)
+.next/
+out/
+
+# Testing files
+coverage/
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+
+# Documentation (not needed in production)
+README.md
+CLAUDE.md
+TESTING.md
+VERCEL_DEPLOYMENT.md
+.github/
+
+# Development scripts
+scripts/
+
+# Temporary files
+*.tmp
+*.temp
