@@ -69,21 +69,39 @@ export const MessageThreadFull = React.forwardRef<
   const defaultSuggestions: Suggestion[] = [
     {
       id: "suggestion-1",
-      title: "Get started",
-      detailedSuggestion: "What can you help me with?",
-      messageId: "welcome-query",
+      title: "👤 Show a patient",
+      detailedSuggestion: "Show me a patient named John Doe, admitted for hypertension in the Cardiology department.",
+      messageId: "patient-demo",
     },
     {
       id: "suggestion-2",
-      title: "Learn more",
-      detailedSuggestion: "Tell me about your capabilities.",
-      messageId: "capabilities-query",
+      title: "🧪 Lab results",
+      detailedSuggestion: "Show me the CBC lab results for patient Sarah Johnson ordered by Dr. Smith.",
+      messageId: "lab-demo",
     },
     {
       id: "suggestion-3",
-      title: "Examples",
-      detailedSuggestion: "Show me some example queries I can try.",
-      messageId: "examples-query",
+      title: "💓 Vital signs",
+      detailedSuggestion: "Display vitals for patient John Doe: heart rate 110, BP 150/95, temp 38.7°C, SpO2 94%, resp rate 22.",
+      messageId: "vitals-demo",
+    },
+    {
+      id: "suggestion-4",
+      title: "📅 Schedule appointment",
+      detailedSuggestion: "Schedule a follow-up consultation for patient Sarah Johnson with Dr. Smith in Cardiology tomorrow at 10am.",
+      messageId: "appointment-demo",
+    },
+    {
+      id: "suggestion-5",
+      title: "🏥 Check bed availability",
+      detailedSuggestion: "Show the current bed availability for MediHealth Hospital with ICU, Cardiology, and General wards.",
+      messageId: "beds-demo",
+    },
+    {
+      id: "suggestion-6",
+      title: "➕ Add a patient",
+      detailedSuggestion: "Add a new patient: Maria Garcia, 45, Female, diagnosed with Type 2 Diabetes.",
+      messageId: "add-patient-demo",
     },
   ];
 

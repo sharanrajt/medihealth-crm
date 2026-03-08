@@ -11,7 +11,9 @@ import {
     IconAmbulance,
     IconAlertTriangle,
     IconX,
-    IconPackage
+    IconTrendingDown,
+    IconPackage,
+    IconFileReport
 } from "@tabler/icons-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCrmData } from "@/lib/crm-data-store";
@@ -52,17 +54,17 @@ interface ActivityItemData {
 
 const StatCard = ({ title, value, icon, color, subtitle, onClick }: { title: string; value: string | number; icon: React.ReactNode; color: string; subtitle?: string; onClick?: () => void }) => (
     <motion.div
-        whileHover={{ y: -5 }}
+        whileHover={{ y: -5, scale: 1.02 }}
         onClick={onClick}
-        className="bg-white dark:bg-gray-800 p-5 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col justify-between cursor-pointer"
+        className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl p-5 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)] border border-white/20 dark:border-gray-700/50 flex flex-col justify-between cursor-pointer group"
     >
         <div className="flex items-start justify-between">
             <div>
-                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{title}</p>
-                <h3 className="text-2xl font-bold mt-1 text-gray-900 dark:text-white">{value}</h3>
-                {subtitle && <p className="text-xs text-gray-400 mt-1">{subtitle}</p>}
+                <p className="text-sm font-semibold text-gray-500 dark:text-gray-400 group-hover:text-blue-500 transition-colors">{title}</p>
+                <h3 className="text-3xl font-black mt-1 text-gray-900 dark:text-white">{value}</h3>
+                {subtitle && <p className="text-xs font-medium text-gray-400 mt-2">{subtitle}</p>}
             </div>
-            <div className={`p-2.5 rounded-xl ${color} text-white shadow-md`}>
+            <div className={`p-3 rounded-2xl ${color} bg-gradient-to-br from-white/20 to-transparent text-white shadow-lg`}>
                 {icon}
             </div>
         </div>
@@ -274,35 +276,37 @@ const Dashboard = () => {
     }, [stats.outOfStockItems, stats.lowStockItems]);
 
     const handleGenerateReport = () => {
-        setShowReportModal(true);
-        setTimeout(() => {
-            alert("Report generated successfully!");
-            setShowReportModal(false);
-        }, 2000);
+        alert("Generating a real-time hospital monitoring report...");
     };
 
     const handleStatClick = (statName: string) => {
-        alert(`Viewing detailed analytics for: ${statName}`);
+        alert(`Showing detailed analytics for ${statName}`);
     };
 
     return (
-        <div className="h-full w-full p-6 overflow-y-auto bg-gray-50/50 dark:bg-gray-900/50">
-            <div className="mb-6 flex justify-between items-center">
+        <div className="h-full w-full p-6 overflow-y-auto bg-slate-50/40 dark:bg-[#0a0f1c]/40 backdrop-blur-3xl relative">
+            {/* Background ambient glow */}
+            <div className="absolute top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
+                <div className="absolute -top-[10%] -right-[5%] w-[40%] h-[40%] rounded-full bg-blue-500/10 dark:bg-blue-600/10 blur-[120px]" />
+                <div className="absolute top-[40%] -left-[10%] w-[50%] h-[50%] rounded-full bg-indigo-500/10 dark:bg-indigo-600/10 blur-[120px]" />
+            </div>
+
+            <div className="mb-6 flex justify-between items-center relative z-10">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Hospital Overview</h1>
-                    <p className="text-gray-500 mt-1 text-sm">Real-time monitoring dashboard</p>
+                    <h1 className="text-3xl font-black bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-400 tracking-tight">Hospital Overview</h1>
+                    <p className="text-gray-500 dark:text-gray-400 mt-1 font-medium">Real-time AI monitoring dashboard</p>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-3">
                     <button
                         onClick={handleGenerateReport}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors flex items-center gap-2"
+                        className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl text-sm font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg shadow-blue-500/25 border border-white/10 flex items-center gap-2 hover:scale-105 active:scale-95"
                     >
-                        <IconClipboardList size={16} />
+                        <IconFileReport size={18} />
                         Generate Report
                     </button>
                     <button
                         onClick={() => setShowSettingsModal(true)}
-                        className="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                        className="px-5 py-2.5 bg-white/70 dark:bg-gray-800/70 backdrop-blur-md border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 rounded-xl text-sm font-semibold hover:bg-white dark:hover:bg-gray-700 transition-all shadow-sm hover:scale-105 active:scale-95"
                     >
                         Settings
                     </button>

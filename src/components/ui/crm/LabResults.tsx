@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
     IconTestPipe,
     IconSearch,
@@ -14,9 +14,12 @@ import {
 } from "@tabler/icons-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCrmData, type LabResult } from "@/lib/crm-data-store";
+import { useNavigation } from "@/lib/navigation-context";
 
 const LabResults = () => {
     const { labResults } = useCrmData();
+    const { highlightedItemId } = useNavigation();
+    const highlightRef = useRef<HTMLDivElement>(null);
     const [searchTerm, setSearchTerm] = useState("");
     const [showNewTestModal, setShowNewTestModal] = useState(false);
     const [selectedResult, setSelectedResult] = useState<LabResult | null>(null);
@@ -25,8 +28,8 @@ const LabResults = () => {
     const filteredResults = labResults.filter(result =>
         (filterStatus === "All" || result.status === filterStatus) &&
         (result.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        result.testType.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        result.id.toLowerCase().includes(searchTerm.toLowerCase()))
+            result.testType.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            result.id.toLowerCase().includes(searchTerm.toLowerCase()))
     );
 
     const handleNewTestOrder = (e: React.FormEvent) => {
@@ -43,21 +46,34 @@ const LabResults = () => {
         setSelectedResult(result);
     };
 
+    // Auto-scroll to highlighted item
+    useEffect(() => {
+        if (highlightedItemId && highlightRef.current) {
+            highlightRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+    }, [highlightedItemId]);
+
     return (
-        <div className="h-full w-full p-6 bg-gray-50 dark:bg-gray-900 overflow-y-auto">
-            <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+        <div className="h-full w-full p-6 bg-slate-50/40 dark:bg-[#0a0f1c]/40 backdrop-blur-3xl overflow-y-auto relative">
+            {/* Ambient background glow */}
+            <div className="absolute top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
+                <div className="absolute top-[20%] -left-[10%] w-[40%] h-[40%] rounded-full bg-blue-500/10 dark:bg-blue-600/10 blur-[120px]" />
+                <div className="absolute -bottom-[10%] right-[10%] w-[50%] h-[50%] rounded-full bg-indigo-500/10 dark:bg-indigo-600/10 blur-[130px]" />
+            </div>
+
+            <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4 relative z-10">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
-                        <IconMicroscope className="text-blue-500" size={32} />
+                    <h1 className="text-3xl font-black bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-400 flex items-center gap-3">
+                        <IconMicroscope className="text-blue-500" size={36} />
                         Lab Results & Diagnostics
                     </h1>
-                    <p className="text-gray-500 mt-1">Manage and view patient test results</p>
+                    <p className="text-gray-500 dark:text-gray-400 mt-1 font-medium">Manage, view, and intelligently analyze patient test results</p>
                 </div>
 
                 <div className="flex gap-3">
-                    <button 
+                    <button
                         onClick={() => setShowNewTestModal(true)}
-                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                        className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all font-semibold shadow-lg shadow-blue-500/25 border border-white/10 hover:scale-105 active:scale-95"
                     >
                         <IconTestPipe size={20} />
                         New Test Order
@@ -66,87 +82,99 @@ const LabResults = () => {
             </div>
 
             {/* Search and Filter */}
-            <div className="flex flex-col md:flex-row gap-4 mb-6">
-                <div className="relative flex-1">
-                    <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+            <div className="flex flex-col md:flex-row gap-4 mb-6 relative z-10 bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl p-4 rounded-2xl shadow-sm border border-gray-200/50 dark:border-gray-700/50">
+                <div className="relative flex-1 bg-white dark:bg-gray-950/50 rounded-xl px-4 border border-gray-200/60 dark:border-gray-800/60 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all shadow-inner flex items-center">
+                    <IconSearch className="text-gray-400 mr-2" size={20} />
                     <input
                         type="text"
                         placeholder="Search by patient, test type, or ID..."
-                        className="w-full pl-10 pr-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                        className="w-full py-2.5 bg-transparent border-none outline-none text-gray-900 dark:text-white placeholder-gray-400"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
-                <select
-                    value={filterStatus}
-                    onChange={(e) => setFilterStatus(e.target.value)}
-                    className="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-gray-700 dark:text-gray-200"
-                >
-                    <option value="All">All Status</option>
-                    <option value="Completed">Completed</option>
-                    <option value="Processing">Processing</option>
-                    <option value="Pending">Pending</option>
-                </select>
+                <div className="flex items-center px-4 py-2.5 bg-white dark:bg-gray-950/50 rounded-xl border border-gray-200/60 dark:border-gray-800/60 shadow-inner">
+                    <IconFilter size={18} className="text-gray-400 mr-2" />
+                    <select
+                        value={filterStatus}
+                        onChange={(e) => setFilterStatus(e.target.value)}
+                        className="bg-transparent border-none text-gray-700 dark:text-gray-200 font-medium focus:outline-none cursor-pointer"
+                    >
+                        <option value="All">All Status</option>
+                        <option value="Completed">Completed</option>
+                        <option value="Processing">Processing</option>
+                        <option value="Pending">Pending</option>
+                    </select>
+                </div>
             </div>
 
             {/* Results Grid */}
-            <div className="grid grid-cols-1 gap-4">
+            <div className="grid grid-cols-1 gap-4 relative z-10 pb-10">
                 {filteredResults.map((result, index) => (
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.05 }}
+                        animate={highlightedItemId === result.id
+                            ? { opacity: 1, y: 0, boxShadow: ["0 0 0px rgba(59,130,246,0)", "0 0 24px rgba(59,130,246,0.5)", "0 0 0px rgba(59,130,246,0)"] }
+                            : { opacity: 1, y: 0 }
+                        }
+                        transition={highlightedItemId === result.id
+                            ? { boxShadow: { repeat: Infinity, duration: 1.5 } }
+                            : { delay: index * 0.05 }
+                        }
                         key={result.id}
-                        className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow"
+                        ref={highlightedItemId === result.id ? highlightRef : undefined}
+                        whileHover={{ scale: 1.01 }}
+                        className={`backdrop-blur-md p-5 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)] border hover:shadow-md transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 group ${highlightedItemId === result.id
+                                ? "bg-blue-50/80 dark:bg-blue-900/20 border-blue-400 dark:border-blue-500 ring-2 ring-blue-400/30"
+                                : "bg-white/80 dark:bg-gray-800/80 border-white/20 dark:border-gray-700/50"
+                            }`}
                     >
-                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                            <div className="flex items-start gap-4">
-                                <div className={`p-3 rounded-lg ${result.priority === 'Critical' ? 'bg-red-100 text-red-600' :
-                                        result.priority === 'High' ? 'bg-orange-100 text-orange-600' :
-                                            'bg-blue-100 text-blue-600'
-                                    }`}>
-                                    <IconDna size={24} />
+                        <div className="flex items-start gap-4">
+                            <div className={`p-3 rounded-lg flex items-center justify-center ${result.priority === 'Critical' ? 'bg-red-100 text-red-600' :
+                                result.priority === 'High' ? 'bg-orange-100 text-orange-600' :
+                                    'bg-blue-100 text-blue-600'
+                                }`}>
+                                <IconDna size={24} />
+                            </div>
+                            <div>
+                                <div className="flex items-center gap-2">
+                                    <h3 className="font-bold text-gray-900 dark:text-white text-lg">{result.testType}</h3>
+                                    <span className={`text-xs px-2 py-0.5 rounded-full ${result.status === 'Completed' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
+                                        result.status === 'Processing' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
+                                            'bg-gray-100 text-gray-700 dark:bg-gray-700/50 dark:text-gray-400'
+                                        }`}>
+                                        {result.status}
+                                    </span>
                                 </div>
-                                <div>
-                                    <div className="flex items-center gap-2">
-                                        <h3 className="font-bold text-gray-900 dark:text-white text-lg">{result.testType}</h3>
-                                        <span className={`text-xs px-2 py-0.5 rounded-full ${result.status === 'Completed' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
-                                                result.status === 'Processing' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
-                                                    'bg-gray-100 text-gray-700 dark:bg-gray-700/50 dark:text-gray-400'
-                                            }`}>
-                                            {result.status}
-                                        </span>
-                                    </div>
-                                    <p className="text-gray-500 text-sm mt-1">
-                                        Patient: <span className="font-medium text-gray-700 dark:text-gray-300">{result.patientName}</span> •
-                                        ID: {result.id}
-                                    </p>
-                                    <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
-                                        <span className="flex items-center gap-1">
-                                            <IconActivity size={14} /> Result: {result.resultSummary}
-                                        </span>
-                                        <span>Ordered by: {result.doctor}</span>
-                                        <span>Date: {result.date}</span>
-                                    </div>
+                                <p className="text-gray-500 text-sm mt-1">
+                                    Patient: <span className="font-medium text-gray-700 dark:text-gray-300">{result.patientName}</span> •
+                                    ID: {result.id}
+                                </p>
+                                <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
+                                    <span className="flex items-center gap-1">
+                                        <IconActivity size={14} /> Result: {result.resultSummary}
+                                    </span>
+                                    <span>Ordered by: {result.doctor}</span>
+                                    <span>Date: {result.date}</span>
                                 </div>
                             </div>
+                        </div>
 
-                            <div className="flex items-center gap-2 md:self-center self-end">
-                                <button 
-                                    onClick={() => handleViewDetails(result)}
-                                    className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors" 
-                                    title="View Details"
-                                >
-                                    <IconEye size={20} />
-                                </button>
-                                <button 
-                                    onClick={() => handleDownload(result)}
-                                    className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors" 
-                                    title="Download Report"
-                                >
-                                    <IconDownload size={20} />
-                                </button>
-                            </div>
+                        <div className="flex items-center gap-3 md:self-center self-end border-t md:border-t-0 border-gray-100 dark:border-gray-700 pt-3 md:pt-0 mt-3 md:mt-0 w-full md:w-auto justify-end">
+                            <button
+                                onClick={() => handleViewDetails(result)}
+                                className="p-2.5 text-gray-500 hover:text-blue-600 bg-white/50 hover:bg-white dark:bg-gray-800/50 dark:hover:bg-gray-700 border border-gray-200/50 dark:border-gray-600/50 shadow-sm rounded-xl transition-colors"
+                                title="View Details"
+                            >
+                                <IconEye size={20} />
+                            </button>
+                            <button
+                                onClick={() => handleDownload(result)}
+                                className="p-2.5 text-gray-500 hover:text-blue-600 bg-white/50 hover:bg-white dark:bg-gray-800/50 dark:hover:bg-gray-700 border border-gray-200/50 dark:border-gray-600/50 shadow-sm rounded-xl transition-colors"
+                                title="Download Report"
+                            >
+                                <IconDownload size={20} />
+                            </button>
                         </div>
                     </motion.div>
                 ))}
@@ -337,7 +365,7 @@ const LabResults = () => {
                     </motion.div>
                 )}
             </AnimatePresence>
-        </div>
+        </div >
     );
 };
 

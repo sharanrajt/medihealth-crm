@@ -8,6 +8,14 @@ import { TamboComponent, TamboTool } from "@tambo-ai/react";
 
 import { calendarControlTool } from "@/services/calendar-control";
 import { addPatientTool, addLabResultTool, addStaffMemberTool, addInventoryItemTool } from "@/services/crm-tools";
+import {
+  navigateAndAddStaffTool,
+  navigateAndAddPatientTool,
+  navigateAndAddInventoryTool,
+  navigateAndAddLabResultTool,
+  navigateAndDeletePatientTool,
+  navigateAndUpdatePatientTool,
+} from "@/services/crm-actions";
 import { PatientSummaryCard } from "@/components/tambo/patient-summary-card";
 import { VitalsDisplay } from "@/components/tambo/vitals-display";
 import { PrescriptionCard } from "@/components/tambo/prescription-card";
@@ -17,6 +25,170 @@ import { BedAvailability } from "@/components/tambo/bed-availability";
 
 
 export const tools: TamboTool[] = [
+  // ============ INTERACTIVE ACTION TOOLS (navigate + act + feedback) ============
+  {
+    name: "navigateAndAddStaff",
+    description:
+      "Navigate to the Staff page and add a new staff member. Use this when the user asks to add, hire, or register a new doctor, nurse, or staff member. This will switch the UI to the Staff page, add the member, highlight them, and show a confirmation.",
+    tool: navigateAndAddStaffTool,
+    inputSchema: {
+      type: "object",
+      properties: {
+        name: { type: "string", description: "Staff member full name" },
+        role: { type: "string", enum: ["Doctor", "Nurse", "Admin", "Pharmacist", "Technician", "Specialist"], description: "Staff role" },
+        department: { type: "string", description: "Department name" },
+        email: { type: "string", description: "Email address" },
+        phone: { type: "string", description: "Phone number" },
+      },
+      required: ["name", "role", "department", "email", "phone"],
+    },
+    outputSchema: {
+      type: "object",
+      properties: {
+        success: { type: "boolean" },
+        message: { type: "string" },
+        staffMember: { type: "object" },
+        error: { type: "string" },
+      },
+      required: ["success"],
+    },
+  },
+  {
+    name: "navigateAndAddPatient",
+    description:
+      "Navigate to the Patient Records page and add a new patient. Use this when the user asks to add, admit, or register a new patient. This will switch the UI to the Records page, add the patient, highlight the new row, and show a confirmation.",
+    tool: navigateAndAddPatientTool,
+    inputSchema: {
+      type: "object",
+      properties: {
+        name: { type: "string", description: "Patient full name" },
+        age: { type: "number", description: "Patient age in years" },
+        gender: { type: "string", enum: ["Male", "Female", "Other"], description: "Patient gender" },
+        diagnosis: { type: "string", description: "Primary diagnosis" },
+        department: { type: "string", description: "Hospital department" },
+        status: { type: "string", enum: ["Admitted", "Outpatient", "Discharged", "Critical"], description: "Patient status" },
+        admissionDate: { type: "string", description: "Admission date in YYYY-MM-DD format" },
+      },
+      required: ["name", "age", "gender", "diagnosis", "department", "status", "admissionDate"],
+    },
+    outputSchema: {
+      type: "object",
+      properties: {
+        success: { type: "boolean" },
+        message: { type: "string" },
+        patient: { type: "object" },
+        error: { type: "string" },
+      },
+      required: ["success"],
+    },
+  },
+  {
+    name: "navigateAndAddInventory",
+    description:
+      "Navigate to the Inventory page and add a new inventory item. Use this when the user asks to add new medical supplies, equipment, or pharmaceuticals. This will switch the UI to the Inventory page, add the item, highlight it, and show a confirmation.",
+    tool: navigateAndAddInventoryTool,
+    inputSchema: {
+      type: "object",
+      properties: {
+        name: { type: "string", description: "Item name" },
+        category: { type: "string", enum: ["Medical Device", "Pharmaceuticals", "Surgical", "General"], description: "Item category" },
+        quantity: { type: "number", description: "Quantity in stock" },
+        location: { type: "string", description: "Storage location" },
+        status: { type: "string", enum: ["In Stock", "Low Stock", "Out of Stock"], description: "Stock status" },
+        expiryDate: { type: "string", description: "Optional expiry date in YYYY-MM-DD format" },
+      },
+      required: ["name", "category", "quantity", "location", "status"],
+    },
+    outputSchema: {
+      type: "object",
+      properties: {
+        success: { type: "boolean" },
+        message: { type: "string" },
+        inventoryItem: { type: "object" },
+        error: { type: "string" },
+      },
+      required: ["success"],
+    },
+  },
+  {
+    name: "navigateAndAddLabResult",
+    description:
+      "Navigate to the Lab Results page and add a new lab test order. Use this when the user asks to order, create, or add a new lab test. This will switch the UI to the Lab page, add the test, highlight it, and show a confirmation.",
+    tool: navigateAndAddLabResultTool,
+    inputSchema: {
+      type: "object",
+      properties: {
+        patientName: { type: "string", description: "Patient name" },
+        testType: { type: "string", description: "Type of lab test (e.g. Complete Blood Count)" },
+        date: { type: "string", description: "Test date in YYYY-MM-DD format" },
+        status: { type: "string", enum: ["Completed", "Pending", "Processing"], description: "Test status" },
+        doctor: { type: "string", description: "Ordering doctor name" },
+        priority: { type: "string", enum: ["Routine", "High", "Critical"], description: "Test priority" },
+        resultSummary: { type: "string", description: "Result summary (use '-' if pending)" },
+      },
+      required: ["patientName", "testType", "date", "status", "doctor", "priority", "resultSummary"],
+    },
+    outputSchema: {
+      type: "object",
+      properties: {
+        success: { type: "boolean" },
+        message: { type: "string" },
+        labResult: { type: "object" },
+        error: { type: "string" },
+      },
+      required: ["success"],
+    },
+  },
+  {
+    name: "navigateAndDeletePatient",
+    description:
+      "Navigate to the Patient Records page and delete a patient record. Use this when the user asks to remove or delete a patient. The UI will navigate to Records, briefly highlight the row being deleted, then remove it.",
+    tool: navigateAndDeletePatientTool,
+    inputSchema: {
+      type: "object",
+      properties: {
+        patientId: { type: "string", description: "Patient ID to delete (e.g. P-1024)" },
+        patientName: { type: "string", description: "Patient name (for confirmation message)" },
+      },
+      required: ["patientId"],
+    },
+    outputSchema: {
+      type: "object",
+      properties: {
+        success: { type: "boolean" },
+        message: { type: "string" },
+        error: { type: "string" },
+      },
+      required: ["success"],
+    },
+  },
+  {
+    name: "navigateAndUpdatePatient",
+    description:
+      "Navigate to the Patient Records page and update a patient's information. Use this when the user asks to update, change, or modify a patient's status, diagnosis, or department. The UI will navigate to Records, update the fields, and highlight the modified row.",
+    tool: navigateAndUpdatePatientTool,
+    inputSchema: {
+      type: "object",
+      properties: {
+        patientId: { type: "string", description: "Patient ID to update (e.g. P-1024)" },
+        patientName: { type: "string", description: "Patient name (for confirmation message)" },
+        status: { type: "string", enum: ["Admitted", "Outpatient", "Discharged", "Critical"], description: "New patient status" },
+        diagnosis: { type: "string", description: "New diagnosis" },
+        department: { type: "string", description: "New department" },
+      },
+      required: ["patientId"],
+    },
+    outputSchema: {
+      type: "object",
+      properties: {
+        success: { type: "boolean" },
+        message: { type: "string" },
+        error: { type: "string" },
+      },
+      required: ["success"],
+    },
+  },
+  // ============ ORIGINAL TOOLS (kept for backward compatibility) ============
   {
     name: "calendarControl",
     description:
@@ -84,7 +256,7 @@ export const tools: TamboTool[] = [
   {
     name: "addPatient",
     description:
-      "Add a new patient record to the CRM. Use this when the user asks to add, create, or register a new patient in the system.",
+      "Add a new patient record to the CRM without navigating. Use this only when the user is already on the records page or does not need navigation.",
     tool: addPatientTool,
     inputSchema: {
       type: "object",
@@ -97,7 +269,6 @@ export const tools: TamboTool[] = [
         status: { type: "string", enum: ["Admitted", "Outpatient", "Discharged", "Critical"], description: "Patient status" },
         admissionDate: { type: "string", description: "Admission date in YYYY-MM-DD format" },
       },
-      required: ["name", "age", "gender", "diagnosis", "department", "status", "admissionDate"],
     },
     outputSchema: {
       type: "object",
@@ -112,7 +283,7 @@ export const tools: TamboTool[] = [
   {
     name: "addLabResult",
     description:
-      "Add a new lab result/test order to the CRM. Use this when the user asks to add, create, or order a new lab test.",
+      "Add a new lab result/test order to the CRM without navigating. Use this only when the user is already on the lab page or does not need navigation.",
     tool: addLabResultTool,
     inputSchema: {
       type: "object",
@@ -140,7 +311,7 @@ export const tools: TamboTool[] = [
   {
     name: "addStaffMember",
     description:
-      "Add a new staff member to the CRM. Use this when the user asks to add, hire, or register a new doctor, nurse, or staff member.",
+      "Add a new staff member to the CRM without navigating. Use this only when the user is already on the staff page or does not need navigation.",
     tool: addStaffMemberTool,
     inputSchema: {
       type: "object",
@@ -166,7 +337,7 @@ export const tools: TamboTool[] = [
   {
     name: "addInventoryItem",
     description:
-      "Add a new inventory item/supply to the CRM. Use this when the user asks to add new medical supplies, equipment, or pharmaceuticals to inventory.",
+      "Add a new inventory item/supply to the CRM without navigating. Use this only when the user is already on the inventory page or does not need navigation.",
     tool: addInventoryItemTool,
     inputSchema: {
       type: "object",

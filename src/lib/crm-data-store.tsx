@@ -335,6 +335,25 @@ export function CrmDataProvider({ children }: { children: React.ReactNode }) {
     setAmbulances((prev) => prev.map((a) => (a.id === id ? { ...a, ...updates } : a)));
   }, []);
 
+  // Wrapper functions for delete/update that return boolean for tools
+  const deletePatientWithReturn = useCallback((id: string): boolean => {
+    const exists = patients.some((p) => p.id === id);
+    if (exists) { deletePatient(id); return true; }
+    return false;
+  }, [patients, deletePatient]);
+
+  const updatePatientWithReturn = useCallback((id: string, updates: Partial<PatientRecord>): boolean => {
+    const exists = patients.some((p) => p.id === id);
+    if (exists) { updatePatient(id, updates); return true; }
+    return false;
+  }, [patients, updatePatient]);
+
+  const deleteStaffMemberWithReturn = useCallback((id: string): boolean => {
+    const exists = staff.some((s) => s.id === id);
+    if (exists) { deleteStaffMember(id); return true; }
+    return false;
+  }, [staff, deleteStaffMember]);
+
   // Expose global functions for Tambo tools (same pattern as calendar-control.ts)
   useEffect(() => {
     type CrmWindow = Window & typeof globalThis & {
@@ -342,20 +361,29 @@ export function CrmDataProvider({ children }: { children: React.ReactNode }) {
       handleAddLabResult?: (result: Omit<LabResult, "id">) => LabResult;
       handleAddStaffMember?: (member: Omit<StaffMember, "id">) => StaffMember;
       handleAddInventoryItem?: (item: Omit<InventoryItem, "id">) => InventoryItem;
+      handleDeletePatient?: (id: string) => boolean;
+      handleUpdatePatient?: (id: string, updates: Partial<PatientRecord>) => boolean;
+      handleDeleteStaffMember?: (id: string) => boolean;
     };
     const win = window as CrmWindow;
     win.handleAddPatient = addPatient;
     win.handleAddLabResult = addLabResult;
     win.handleAddStaffMember = addStaffMember;
     win.handleAddInventoryItem = addInventoryItem;
+    win.handleDeletePatient = deletePatientWithReturn;
+    win.handleUpdatePatient = updatePatientWithReturn;
+    win.handleDeleteStaffMember = deleteStaffMemberWithReturn;
 
     return () => {
       delete win.handleAddPatient;
       delete win.handleAddLabResult;
       delete win.handleAddStaffMember;
       delete win.handleAddInventoryItem;
+      delete win.handleDeletePatient;
+      delete win.handleUpdatePatient;
+      delete win.handleDeleteStaffMember;
     };
-  }, [addPatient, addLabResult, addStaffMember, addInventoryItem]);
+  }, [addPatient, addLabResult, addStaffMember, addInventoryItem, deletePatientWithReturn, updatePatientWithReturn, deleteStaffMemberWithReturn]);
 
   const value: CrmDataContextType = {
     patients, addPatient, updatePatient, deletePatient, setPatients,

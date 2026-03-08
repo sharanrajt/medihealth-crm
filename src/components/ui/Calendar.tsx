@@ -250,9 +250,15 @@ const Calendar: React.FC = () => {
   }, [selectedDate]);
 
   return (
-    <div className="h-full w-full flex flex-col bg-white dark:bg-gray-900 overflow-hidden">
+    <div className="h-full w-full flex flex-col bg-slate-50/40 dark:bg-[#0a0f1c]/40 backdrop-blur-3xl overflow-hidden relative">
+      {/* Ambient background glow */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
+        <div className="absolute top-[10%] -left-[10%] w-[30%] h-[30%] rounded-full bg-blue-500/10 dark:bg-blue-600/10 blur-[120px]" />
+        <div className="absolute top-[40%] right-[10%] w-[40%] h-[40%] rounded-full bg-indigo-500/10 dark:bg-purple-600/10 blur-[130px]" />
+      </div>
+
       {/* ===== Header ===== */}
-      <div className="flex-shrink-0 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+      <div className="flex-shrink-0 border-b border-gray-200/50 dark:border-gray-800/50 bg-white/40 dark:bg-gray-900/40 backdrop-blur-md relative z-10">
         <div className="flex items-center justify-between px-6 py-3">
           {/* Left: Icon + Month/Year */}
           <div className="flex items-center gap-3">
@@ -296,7 +302,7 @@ const Calendar: React.FC = () => {
       </div>
 
       {/* ===== Body ===== */}
-      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden min-h-0">
+      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden min-h-0 relative z-10">
         {/* Calendar Grid */}
         <div className="flex-1 flex flex-col p-4 overflow-auto min-w-0">
           {/* Day headers */}
@@ -304,11 +310,10 @@ const Calendar: React.FC = () => {
             {DAY_LABELS.map((d, i) => (
               <div
                 key={d}
-                className={`text-center text-xs font-semibold py-1.5 rounded-md ${
-                  i === 0 || i === 6
-                    ? "text-red-400 dark:text-red-500"
-                    : "text-gray-500 dark:text-gray-400"
-                }`}
+                className={`text-center text-xs font-semibold py-1.5 rounded-md ${i === 0 || i === 6
+                  ? "text-red-400 dark:text-red-500"
+                  : "text-gray-500 dark:text-gray-400"
+                  }`}
               >
                 {d}
               </div>
@@ -342,14 +347,13 @@ const Calendar: React.FC = () => {
                     relative flex flex-col items-center justify-start pt-1.5 min-h-[52px] rounded-xl
                     transition-all duration-150 ease-out group
                     focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400
-                    ${
-                      isSelected
-                        ? "bg-blue-500 text-white shadow-lg shadow-blue-500/25 scale-[1.02]"
-                        : isHighlighted
+                    ${isSelected
+                      ? "bg-blue-500 text-white shadow-lg shadow-blue-500/25 scale-[1.02]"
+                      : isHighlighted
                         ? "bg-amber-100 dark:bg-amber-900/30 border border-amber-300 dark:border-amber-700"
                         : isToday
-                        ? "bg-blue-50 dark:bg-blue-900/20 border border-blue-300 dark:border-blue-700"
-                        : "hover:bg-gray-100 dark:hover:bg-gray-800 border border-transparent"
+                          ? "bg-blue-50 dark:bg-blue-900/20 border border-blue-300 dark:border-blue-700"
+                          : "hover:bg-gray-100 dark:hover:bg-gray-800 border border-transparent"
                     }
                   `}
                 >
@@ -373,17 +377,15 @@ const Calendar: React.FC = () => {
                         return (
                           <span
                             key={idx}
-                            className={`w-1.5 h-1.5 rounded-full ${
-                              isSelected ? "bg-white/80" : colorCfg.dot
-                            }`}
+                            className={`w-1.5 h-1.5 rounded-full ${isSelected ? "bg-white/80" : colorCfg.dot
+                              }`}
                           />
                         );
                       })}
                       {dayEvents.length > 3 && (
                         <span
-                          className={`text-[9px] font-bold ${
-                            isSelected ? "text-white/70" : "text-gray-400"
-                          }`}
+                          className={`text-[9px] font-bold ${isSelected ? "text-white/70" : "text-gray-400"
+                            }`}
                         >
                           +{dayEvents.length - 3}
                         </span>
@@ -397,26 +399,28 @@ const Calendar: React.FC = () => {
         </div>
 
         {/* ===== Events Sidebar ===== */}
-        <div className="w-full lg:w-80 xl:w-96 border-t lg:border-t-0 lg:border-l border-gray-200 dark:border-gray-800 flex flex-col bg-gray-50 dark:bg-gray-950 overflow-hidden">
+        <div className="w-full lg:w-96 border-t lg:border-t-0 lg:border-l border-white/20 dark:border-gray-800/50 flex flex-col bg-white/40 dark:bg-gray-950/40 backdrop-blur-xl overflow-hidden shadow-inner">
           {selectedDate ? (
             <>
               {/* Sidebar header */}
-              <div className="flex items-center justify-between px-5 py-3 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-white/20 dark:border-gray-800/50 bg-white/50 dark:bg-gray-900/50 backdrop-blur-md relative group">
                 <div>
-                  <p className="text-sm font-bold text-gray-900 dark:text-white">
+                  <p className="text-base font-bold text-gray-900 dark:text-white">
                     {selectedDateDisplay}
                   </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
                     {selectedDateEvents.length} event{selectedDateEvents.length !== 1 ? "s" : ""}
                   </p>
                 </div>
-                <button
-                  onClick={() => setShowModal(true)}
-                  className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg bg-blue-500 text-white shadow-sm hover:bg-blue-600 active:bg-blue-700 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
-                >
-                  <IconPlus className="w-3.5 h-3.5" />
-                  Add
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setShowModal(true)}
+                    className="flex items-center gap-1 px-3 py-2 text-xs font-semibold rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/20 hover:from-blue-700 hover:to-indigo-700 active:scale-95 transition-all border border-white/10"
+                  >
+                    <IconPlus className="w-4 h-4" />
+                    Add
+                  </button>
+                </div>
               </div>
 
               {/* Events list */}
@@ -434,9 +438,9 @@ const Calendar: React.FC = () => {
                       <div
                         key={i}
                         className={`
-                          group/event flex items-start gap-3 px-4 py-3 rounded-xl border
-                          ${colorCfg.bg} ${colorCfg.border}
-                          transition-all duration-200 hover:shadow-md
+                          group/event flex items-start gap-3 px-4 py-3.5 rounded-2xl border
+                          ${colorCfg.bg} ${colorCfg.border} bg-opacity-70 dark:bg-opacity-40 backdrop-blur-sm
+                          transition-all duration-200 hover:shadow-md hover:scale-[1.02]
                         `}
                       >
                         {/* Color indicator */}
@@ -552,10 +556,9 @@ const Calendar: React.FC = () => {
                       onClick={() => setNewEventColor(c.value)}
                       className={`
                         w-7 h-7 rounded-full ${c.dot} transition-all duration-150
-                        ${
-                          newEventColor === c.value
-                            ? "ring-2 ring-offset-2 ring-offset-white dark:ring-offset-gray-900 ring-gray-400 scale-110"
-                            : "opacity-60 hover:opacity-100 hover:scale-105"
+                        ${newEventColor === c.value
+                          ? "ring-2 ring-offset-2 ring-offset-white dark:ring-offset-gray-900 ring-gray-400 scale-110"
+                          : "opacity-60 hover:opacity-100 hover:scale-105"
                         }
                       `}
                       title={c.label}

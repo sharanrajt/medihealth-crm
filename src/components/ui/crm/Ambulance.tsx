@@ -12,7 +12,7 @@ import {
   IconRadio,
   IconUser,
   IconTruck,
-  IconPointFilled,
+  IconPointFilled
 } from "@tabler/icons-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCrmData, AmbulanceUnit } from "@/lib/crm-data-store";
@@ -90,17 +90,23 @@ const Ambulance = () => {
   });
 
   return (
-    <div className="h-full w-full p-6 bg-gray-50 dark:bg-gray-900 overflow-hidden flex flex-col">
+    <div className="h-full w-full p-6 bg-slate-50/40 dark:bg-[#0a0f1c]/40 backdrop-blur-3xl overflow-hidden flex flex-col relative">
+      {/* Ambient background */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
+        <div className="absolute top-[10%] -left-[10%] w-[50%] h-[50%] rounded-full bg-red-500/10 dark:bg-red-600/10 blur-[130px]" />
+        <div className="absolute -bottom-[20%] right-[10%] w-[40%] h-[40%] rounded-full bg-blue-500/10 dark:bg-blue-600/10 blur-[130px]" />
+      </div>
+
       {/* Header */}
-      <div className="flex justify-between items-center mb-4 shrink-0">
+      <div className="flex justify-between items-center mb-6 shrink-0 relative z-10">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <IconAlertTriangle className="text-red-500" size={28} />
+          <h1 className="text-3xl font-black bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-400 flex items-center gap-2">
+            <IconAlertTriangle className="text-red-500" size={32} />
             Emergency Dispatch
           </h1>
-          <p className="text-gray-500 text-sm mt-0.5">Real-time EMS unit tracking & coordination</p>
+          <p className="text-gray-500 dark:text-gray-400 font-medium text-sm mt-1">Real-time EMS unit tracking & AI coordination</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 bg-white/60 dark:bg-gray-900/60 backdrop-blur-md px-5 py-2.5 rounded-xl border border-white/20 dark:border-gray-800 shadow-sm">
           <div className="flex items-center gap-4 text-xs mr-4">
             <span className="flex items-center gap-1.5 text-red-600 font-semibold">
               <IconPointFilled size={12} className="animate-pulse" /> {criticalCount} Critical
@@ -115,17 +121,17 @@ const Ambulance = () => {
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col lg:flex-row gap-4 overflow-hidden">
+      <div className="flex-1 flex flex-col lg:flex-row gap-5 overflow-hidden relative z-10">
         {/* Unit List */}
-        <div className="w-full lg:w-[380px] flex flex-col gap-3 overflow-y-auto pr-1 shrink-0">
+        <div className="w-full lg:w-[400px] flex flex-col gap-3 overflow-y-auto pr-2 shrink-0 pb-10">
           {sortedAmbulances.map((amb) => {
             const cfg = statusConfig[amb.status];
             return (
               <motion.div
                 key={amb.id}
                 onClick={() => setSelectedUnit(amb)}
-                whileHover={{ x: 2 }}
-                className="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm relative overflow-hidden cursor-pointer hover:border-blue-400 dark:hover:border-blue-500 transition-colors"
+                whileHover={{ scale: 1.01 }}
+                className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-md p-4 rounded-xl border border-white/20 dark:border-gray-700/50 shadow-sm relative overflow-hidden cursor-pointer hover:shadow-md transition-all group"
               >
                 {/* Left accent bar */}
                 <div className={`absolute top-0 left-0 w-1 h-full ${cfg.dot}`} />
@@ -176,9 +182,9 @@ const Ambulance = () => {
                   </div>
                 )}
 
-                <div className="mt-2 pt-2 border-t border-gray-100 dark:border-gray-700 flex justify-between items-center text-[10px] text-gray-400">
-                  <span>Crew: {amb.crew.paramedic}</span>
-                  <span className="flex items-center gap-1"><IconRadio size={11} /> {amb.radioChannel}</span>
+                <div className="mt-3 pt-3 border-t border-gray-100/50 dark:border-gray-700/50 flex justify-between items-center text-[11px] font-medium text-gray-500">
+                  <span className="flex items-center gap-1.5"><IconUser size={14} className="text-gray-400" /> {amb.crew.paramedic}</span>
+                  <span className="flex items-center gap-1.5 bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded font-mono"><IconRadio size={12} className="text-gray-400" /> {amb.radioChannel}</span>
                 </div>
               </motion.div>
             );
@@ -186,10 +192,10 @@ const Ambulance = () => {
         </div>
 
         {/* Map View */}
-        <div className="flex-1 rounded-2xl overflow-hidden shadow-inner border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 flex flex-col min-h-0">
-          <div className="p-3 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center bg-gray-50/50 dark:bg-gray-800/50">
-            <h3 className="font-semibold text-gray-700 dark:text-gray-200 flex items-center gap-2 text-sm">
-              <IconMapPin size={16} /> GPS Tracking — Live
+        <div className="flex-1 rounded-2xl overflow-hidden shadow-lg border border-white/20 dark:border-gray-700/50 bg-white/70 dark:bg-gray-900/70 backdrop-blur-xl flex flex-col min-h-0">
+          <div className="p-4 border-b border-gray-200/50 dark:border-gray-800 flex justify-between items-center bg-gray-50/50 dark:bg-gray-900/50 backdrop-blur-sm">
+            <h3 className="font-bold text-gray-800 dark:text-gray-200 flex items-center gap-2">
+              <IconMapPin size={20} className="text-blue-500" /> Live GPS Tracking
             </h3>
             <div className="flex gap-3">
               {Object.entries(statusConfig).map(([status, cfg]) => (

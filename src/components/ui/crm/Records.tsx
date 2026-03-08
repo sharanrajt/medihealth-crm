@@ -1,11 +1,14 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { IconSearch, IconFilter, IconPlus, IconTrash, IconEdit } from "@tabler/icons-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCrmData, type PatientRecord } from "@/lib/crm-data-store";
+import { useNavigation } from "@/lib/navigation-context";
 
 const Records = () => {
     const { patients: records, addPatient, updatePatient, deletePatient } = useCrmData();
+    const { highlightedItemId } = useNavigation();
+    const highlightRef = useRef<HTMLTableRowElement>(null);
     const [searchTerm, setSearchTerm] = useState("");
     const [filterStatus, setFilterStatus] = useState<"All" | "Admitted" | "Outpatient" | "Critical" | "Discharged">("All");
     const [showAddModal, setShowAddModal] = useState(false);
@@ -79,37 +82,51 @@ const Records = () => {
         setShowEditModal(true);
     };
 
+    // Auto-scroll to highlighted item
+    useEffect(() => {
+        if (highlightedItemId && highlightRef.current) {
+            highlightRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+    }, [highlightedItemId]);
+
     return (
-        <div className="h-full w-full p-6 overflow-hidden flex flex-col bg-gray-50/50 dark:bg-gray-900/50">
+        <div className="h-full w-full p-6 overflow-hidden flex flex-col bg-slate-50/40 dark:bg-[#0a0f1c]/40 backdrop-blur-3xl relative">
+            {/* Background elements */}
+            <div className="absolute top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
+                <div className="absolute -top-[20%] -right-[10%] w-[50%] h-[50%] rounded-full bg-blue-500/10 dark:bg-blue-600/10 blur-[100px]" />
+                <div className="absolute bottom-[10%] -left-[10%] w-[40%] h-[40%] rounded-full bg-indigo-500/10 dark:bg-indigo-600/10 blur-[100px]" />
+            </div>
+
             <div className="flex justify-between items-center mb-6">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Patient Records</h1>
-                    <p className="text-gray-500 mt-1">Manage patient admissions and medical history.</p>
+                    <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-400">Patient Records</h1>
+                    <p className="text-gray-500 dark:text-gray-400 mt-1">Manage patient admissions and medical history.</p>
                 </div>
-                <button 
+                <button
                     onClick={() => setShowAddModal(true)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center shadow-md transition-colors"
+                    className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-5 py-2.5 rounded-xl flex items-center shadow-lg shadow-blue-500/25 transition-all hover:scale-105 active:scale-95 border border-white/10"
                 >
                     <IconPlus size={20} className="mr-2" /> Add New Patient
                 </button>
             </div>
 
-            <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 mb-6 flex items-center justify-between">
-                <div className="flex items-center w-full max-w-md bg-gray-100 dark:bg-gray-900 rounded-lg px-3 py-2 border border-transparent focus-within:border-blue-500 transition-colors">
-                    <IconSearch size={20} className="text-gray-400 mr-2" />
+            <div className="bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl p-4 rounded-2xl shadow-sm border border-gray-200/50 dark:border-gray-700/50 mb-6 flex items-center justify-between z-10">
+                <div className="flex items-center w-full max-w-md bg-white dark:bg-gray-950/50 rounded-xl px-4 py-2.5 border border-gray-200/60 dark:border-gray-800/60 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all shadow-inner">
+                    <IconSearch size={20} className="text-gray-400 mr-3" />
                     <input
                         type="text"
                         placeholder="Search by name, ID, department..."
-                        className="bg-transparent border-none outline-none text-gray-700 dark:text-gray-200 w-full placeholder-gray-400"
+                        className="bg-transparent border-none outline-none text-gray-700 dark:text-gray-200 w-full placeholder-gray-400 text-sm font-medium"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
                 <div className="flex items-center space-x-4">
-                    <div className="flex items-center space-x-2">
-                        <span className="text-sm text-gray-500 font-medium">Filter by Status:</span>
+                    <div className="flex items-center space-x-3 bg-white dark:bg-gray-950/50 px-4 py-2 rounded-xl border border-gray-200/60 dark:border-gray-800/60 shadow-inner">
+                        <IconFilter size={18} className="text-gray-400" />
+                        <span className="text-sm text-gray-500 font-medium">Status:</span>
                         <select
-                            className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="bg-transparent border-none text-gray-700 dark:text-gray-200 text-sm font-medium focus:outline-none cursor-pointer"
                             value={filterStatus}
                             onChange={(e) => setFilterStatus(e.target.value as any)}
                         >
@@ -123,11 +140,11 @@ const Records = () => {
                 </div>
             </div>
 
-            <div className="flex-1 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col">
+            <div className="flex-1 bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl rounded-2xl shadow-sm border border-gray-200/50 dark:border-gray-700/50 overflow-hidden flex flex-col z-10">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="bg-gray-50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-700">
+                            <tr className="bg-gray-50/80 dark:bg-gray-800/80 backdrop-blur border-b border-gray-200/80 dark:border-gray-700/80">
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">ID</th>
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Name</th>
                                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Age/Sex</th>
@@ -143,11 +160,22 @@ const Records = () => {
                                 {filteredRecords.map((record) => (
                                     <motion.tr
                                         key={record.id}
+                                        ref={highlightedItemId === record.id ? highlightRef : undefined}
                                         initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
+                                        animate={highlightedItemId === record.id
+                                            ? { opacity: 1, y: 0, backgroundColor: ["rgba(59,130,246,0.08)", "rgba(59,130,246,0.2)", "rgba(59,130,246,0.08)"] }
+                                            : { opacity: 1, y: 0 }
+                                        }
+                                        transition={highlightedItemId === record.id
+                                            ? { backgroundColor: { repeat: Infinity, duration: 1.5 } }
+                                            : undefined
+                                        }
                                         exit={{ opacity: 0, height: 0 }}
                                         onClick={() => handleViewDetails(record)}
-                                        className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors cursor-pointer"
+                                        className={`transition-colors cursor-pointer ${highlightedItemId === record.id
+                                                ? "bg-blue-50 dark:bg-blue-900/20 ring-2 ring-inset ring-blue-400/40"
+                                                : "hover:bg-gray-50 dark:hover:bg-gray-700/30"
+                                            }`}
                                     >
                                         <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">{record.id}</td>
                                         <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300 font-semibold">{record.name}</td>
@@ -160,22 +188,22 @@ const Records = () => {
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">{record.admissionDate}</td>
-                                        <td className="px-6 py-4 text-sm text-right space-x-2">
-                                            <button 
+                                        <td className="px-6 py-4 text-sm text-right flex justify-end gap-1">
+                                            <button
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     handleEditClick(record);
                                                 }}
-                                                className="text-blue-500 hover:text-blue-700 transition-colors p-1 rounded hover:bg-blue-50 dark:hover:bg-blue-900/30"
+                                                className="text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors p-1.5 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30"
                                             >
                                                 <IconEdit size={18} />
                                             </button>
-                                            <button 
+                                            <button
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     handleDeletePatient(record.id);
                                                 }}
-                                                className="text-red-500 hover:text-red-700 transition-colors p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/30"
+                                                className="text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 transition-colors p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30"
                                             >
                                                 <IconTrash size={18} />
                                             </button>
